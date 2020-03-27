@@ -93,7 +93,7 @@ const sketch = p5 => {
 const illness_graph = p5 => {
   let width = 600;
   let height = 200;
-  let dot_size = 5;
+  let dot_size = 2;
 
   p5.setup = () => {
     p5.createCanvas(width, height + dot_size * 2).position(10, 620);
