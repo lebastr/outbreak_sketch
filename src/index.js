@@ -1,94 +1,84 @@
 import p5 from "p5";
 
 const sketch = p5 => {
-  let Height = 600;
-  let Width = 600;
-  
-  let N = 100;
-  
-  let Xs = new Float64Array(N);
-  let Ys = new Float64Array(N);
-  let Vxs = new Float64Array(N);
-  let Vys = new Float64Array(N);
-  let Is_ill = new Int8Array(N);
-  let Last_illness_time = new Float64Array(N);
-  let Disease_duration = 50;
-  let Virulence = 0.01;
-  let maxSpeed = 10;
-  let dT = 0.1;
-  let T = 0.0;
-  let eps = 5.0;
-
-  let IllCounter = 1;
-  Is_ill[0] = true;
-
-  for(let i = 0; i < N; i++) {
-    Xs[i] = p5.random(0, Width);
-    Ys[i] = p5.random(0, Height);
-    let angle = p5.random(0, 2*p5.PI);
-    Vxs[i] = maxSpeed * p5.cos(angle);
-    Vys[i] = maxSpeed * p5.sin(angle);
-  }
-
-  p5.setup = function() {
-    p5.createCanvas(Width, Height);
+  p5.setup = function () {
+    p5.createCanvas(width, height);
     p5.background(0, 0, 0);
   };
 
-  p5.draw = function() {
+
+  let height = 600;
+  let width = 600;
+
+  let N = 500;
+
+  let disease_duration = 4;
+  let speed = 50;
+  let dT = 0.1;
+  let body_size = 5.0;
+
+
+  let people = [];
+  for (let i = 0; i < N; i++) {
+    let angle = p5.random(0, 2 * p5.PI);
+    people.push({
+      x: p5.random(0, width),
+      y: p5.random(0, height),
+      vx: speed * p5.cos(angle),
+      vy: speed * p5.sin(angle),
+      is_ill: false,
+      last_illness_time: null,
+      distance_square(person) {
+        return (this.x - person.x) ** 2 + (this.y - person.y) ** 2
+      },
+    });
+  }
+
+  let ill_counter = 1;
+  people[0].is_ill = true;
+
+
+  let T = 0.0;
+  p5.draw = function () {
     p5.background(0, 0, 0);
-    
-    for(let i = 0; i < Xs.length; i++) {
-      let color;
-      if (Is_ill[i]) {
-        color = [255,0,0];
-      } else {
-        color = [0,255,0];
-      }
 
-      p5.fill(color);
-      p5.circle(Xs[i], Ys[i], eps);
+    people.forEach(person => {
+      p5.fill(person.is_ill ? [255, 0, 0] : [0, 255, 0]);
+      p5.circle(person.x, person.y, body_size);
+
       p5.fill(255);
-      p5.text(T.toString().substring(0,5), 10, 10);
-      p5.text(IllCounter, 10, 20);
-      //p5.text(Vxs[0], 10, 30);
-      //p5.text(Xs[0], 10, 50);
-    }
-      // Обновление системы
-    for (let i = 0; i < N; i++) {
-      if(Is_ill[i] && T - Last_illness_time[i] > Disease_duration){
-        Is_ill[i] = false;
-        IllCounter -= 1;
-      }
-        
-      for (let j = 0; j < N; j++) {
-        let d_square = (Xs[i] - Xs[j])**2 + (Ys[i] - Ys[j])**2;
-        if (d_square > eps**2) {
-          continue;
-        }
-          
-        if(Is_ill[i] && !Is_ill[j]) {
-          Is_ill[j] = true;
-          IllCounter += 1;
-          Last_illness_time[j] = T;
-        }
-      }
-    }
+      p5.text(T.toString().substring(0, 5), 10, 10);
+      p5.text(ill_counter, 10, 20);
 
-    for (let i = 0; i < N; i++) {
-      Xs[i] = Xs[i] + Vxs[i] * dT;
-      Ys[i] = Ys[i] + Vys[i] * dT;
-      Xs[i] = Xs[i] % Width;
-      Ys[i] = Ys[i] % Width;
 
-      if(Xs[i] < 0) {
-        Xs[i] += Width;
+      if (person.is_ill && T - person.last_illness_time > disease_duration) {
+        person.is_ill = false;
+        ill_counter -= 1;
       }
 
-      if(Ys[i] < 0) {
-        Ys[i] += Height;
+      if (person.is_ill) {
+        people.forEach(person2 => {
+          if (!person2.is_ill && person.distance_square(person2) < body_size ** 2) {
+            person2.is_ill = true;
+            ill_counter += 1;
+            person2.last_illness_time = T;
+          }
+        });
       }
-    }
+
+      person.x += person.vx * dT;
+      person.y += person.vy * dT;
+
+      person.x %= width;
+      if (person.x < 0) {
+        person.x += width;
+      }
+
+      person.y %= height;
+      if (person.y < 0) {
+        person.y += height;
+      }
+    });
 
     T += dT;
   };
