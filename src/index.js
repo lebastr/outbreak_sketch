@@ -4,7 +4,7 @@ let ill_counter;
 
 const sketch = p5 => {
   p5.setup = function () {
-    p5.createCanvas(width, height);
+    p5.createCanvas(width, height).position(10, 10);
     p5.background(0, 0, 0);
   };
 
@@ -96,7 +96,7 @@ const illness_graph = p5 => {
   let dot_size = 5;
 
   p5.setup = () => {
-    p5.createCanvas(width, height + dot_size * 2);
+    p5.createCanvas(width, height + dot_size * 2).position(10, 620);
     p5.background([255, 255, 255]);
   };
 
@@ -114,6 +114,7 @@ const illness_graph = p5 => {
   p5.draw = () => {
     if (ill_counter == 0) {
       p5.text("Done", 10, 20);
+      p5.draw = null;
       return;
     }
 
