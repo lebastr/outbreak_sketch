@@ -12,8 +12,8 @@ const sketch = p5 => {
 
   let N = 500;
 
-  let disease_duration = 4;
-  let speed = 50;
+  let disease_duration = 10;
+  let speed = 30;
   let dT = 0.1;
   let body_size = 5.0;
 
@@ -27,6 +27,7 @@ const sketch = p5 => {
       vx: speed * p5.cos(angle),
       vy: speed * p5.sin(angle),
       is_ill: false,
+      has_immunity: false,
       last_illness_time: null,
       distance_square(person) {
         return (this.x - person.x) ** 2 + (this.y - person.y) ** 2
@@ -50,15 +51,17 @@ const sketch = p5 => {
       p5.text(T.toString().substring(0, 5), 10, 10);
       p5.text(ill_counter, 10, 20);
 
-
       if (person.is_ill && T - person.last_illness_time > disease_duration) {
         person.is_ill = false;
+        person.has_immunity = true;
         ill_counter -= 1;
       }
 
       if (person.is_ill) {
         people.forEach(person2 => {
-          if (!person2.is_ill && person.distance_square(person2) < body_size ** 2) {
+          if (!person2.has_immunity &&
+              !person2.is_ill &&
+              person.distance_square(person2) < body_size ** 2) {
             person2.is_ill = true;
             ill_counter += 1;
             person2.last_illness_time = T;
