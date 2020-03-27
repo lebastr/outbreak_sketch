@@ -113,7 +113,7 @@ const illness_graph = p5 => {
 
   p5.draw = () => {
     if (ill_counter == 0) {
-      p5.text("Done", 10, 20);
+      p5.text("Max value: " + max_value, 10, 20);
       p5.draw = null;
       return;
     }
