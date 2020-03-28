@@ -12,13 +12,16 @@ const sketch = p5 => {
   let height = 600;
   let width = 600;
 
-  let N = 1000;
+  let N = 500;
 
   let disease_duration = 12;
+  let immunity_duration = 24; // negative for infinite immunity
   let speed = 10;
   let dT = 0.1;
-  let body_size = 2.0;
+  let body_size = 5.0;
 
+
+  let T = 0.0;
 
   let people = [];
   for (let i = 0; i < N; ++i) {
@@ -29,8 +32,15 @@ const sketch = p5 => {
       vx: speed * p5.cos(angle),
       vy: speed * p5.sin(angle),
       is_ill: false,
-      has_immunity: false,
       last_illness_time: null,
+      has_immunity() {
+        return immunity_duration &&
+          this.last_illness_time &&
+          (immunity_duration < 0 ||
+            T - this.last_illness_time > disease_duration &&
+            T - this.last_illness_time <= immunity_duration + disease_duration
+          );
+      },
       distance_square(person) {
         return (this.x - person.x) ** 2 + (this.y - person.y) ** 2
       },
@@ -41,7 +51,6 @@ const sketch = p5 => {
   people[0].is_ill = true;
 
 
-  let T = 0.0;
   p5.draw = () => {
     p5.background(0, 0, 0);
     p5.fill(255);
@@ -56,13 +65,12 @@ const sketch = p5 => {
     people.forEach(person => {
       if (person.is_ill && T - person.last_illness_time > disease_duration) {
         person.is_ill = false;
-        person.has_immunity = true;
         ill_counter -= 1;
       }
 
       if (person.is_ill) {
         people.forEach(person2 => {
-          if (!person2.has_immunity &&
+          if (!person2.has_immunity() &&
             !person2.is_ill &&
             person.distance_square(person2) < body_size ** 2) {
             person2.is_ill = true;
