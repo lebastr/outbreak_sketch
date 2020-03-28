@@ -101457,7 +101457,7 @@ var sketch = function sketch(p5) {
   var width = 600;
   var N = 500;
   var disease_duration = 12;
-  var immunity_duration = 24; // negative for infinite immunity
+  var immunity_duration = -24; // negative for infinite immunity
 
   var speed = 10;
   var dT = 0.1;
@@ -101533,9 +101533,10 @@ var illness_graph = function illness_graph(p5) {
   var width = 600;
   var height = 200;
   var dot_size = 2;
+  var text_size = 60;
 
   p5.setup = function () {
-    p5.createCanvas(width, height + dot_size * 2).position(10, 620);
+    p5.createCanvas(width, height + dot_size * 2 + text_size).position(10, 620);
     p5.background([255, 255, 255]);
   };
 
@@ -101545,7 +101546,7 @@ var illness_graph = function illness_graph(p5) {
 
   function draw_point(value, x) {
     var real_x = p5.floor(x / scale);
-    var real_y = height * (1 - value / max_value) + dot_size;
+    var real_y = height * (1 - value / max_value) + dot_size + text_size;
     p5.fill([0, 0, 0]).circle(real_x, real_y, dot_size);
   }
 
@@ -101553,7 +101554,7 @@ var illness_graph = function illness_graph(p5) {
 
   p5.draw = function () {
     if (ill_counter == 0) {
-      p5.text("Max value: " + max_value, 10, 20);
+      p5.text("There are no more ill people. Graph is finished", 10, 35);
       p5.draw = null;
       return;
     }
@@ -101575,6 +101576,7 @@ var illness_graph = function illness_graph(p5) {
 
     if (need_full_redraw) {
       p5.background([255, 255, 255]);
+      p5.text("Max value: " + max_value, 10, 20);
       ill_counter_history.forEach(draw_point);
     } else {
       draw_point(ill_counter, ill_counter_history.length);
@@ -101612,7 +101614,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "40913" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "39551" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

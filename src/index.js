@@ -102,9 +102,10 @@ const illness_graph = p5 => {
   let width = 600;
   let height = 200;
   let dot_size = 2;
+  let text_size = 60;
 
   p5.setup = () => {
-    p5.createCanvas(width, height + dot_size * 2).position(10, 620);
+    p5.createCanvas(width, height + dot_size * 2 + text_size).position(10, 620);
     p5.background([255, 255, 255]);
   };
 
@@ -114,14 +115,14 @@ const illness_graph = p5 => {
 
   function draw_point(value, x) {
     let real_x = p5.floor(x / scale);
-    let real_y = height * (1 - value / max_value) + dot_size;
+    let real_y = height * (1 - value / max_value) + dot_size + text_size;
     p5.fill([0, 0, 0])
       .circle(real_x, real_y, dot_size);
   };
 
   p5.draw = () => {
     if (ill_counter == 0) {
-      p5.text("Max value: " + max_value, 10, 20);
+      p5.text("There are no more ill people. Graph is finished", 10, 35)
       p5.draw = null;
       return;
     }
@@ -144,6 +145,7 @@ const illness_graph = p5 => {
 
     if (need_full_redraw) {
       p5.background([255, 255, 255])
+      p5.text("Max value: " + max_value, 10, 20);
       ill_counter_history.forEach(draw_point);
     }
     else {
