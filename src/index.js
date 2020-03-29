@@ -13,13 +13,13 @@ const sketch = p5 => {
 
   let N = 500;
 
-  let disease_duration = 1000000;
-  let immunity_duration = 24; // negative for infinite immunity
+  let disease_duration = 20;
+  let immunity_duration = 60; // negative for infinite immunity
   let speed = 10;
   let dT = 0.1;
   let body_size = 5.0;
-  let soc_active = 5;
-  let soc_passive = 5;
+  let soc_active = 6;
+  let soc_passive = 3;
   let soc_active_part = 0.1;
 
   let T = 0.0;
