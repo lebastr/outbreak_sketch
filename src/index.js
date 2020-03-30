@@ -71,6 +71,10 @@ const sketch = p5 => {
       return;
     }
 
+    if (p5.mouseIsPressed) {
+      p5.saveJSON(ill_counter_graph_history, 'history.json');
+    }
+
     p5.background(0, 0, 0);
     p5.fill(255);
     p5.text(p5.ceil(T), 10, 10);
