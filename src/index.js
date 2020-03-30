@@ -62,6 +62,10 @@ const sketch = p5 => {
     init_simulation();
   };
 
+  p5.mousePressed = () => {
+    p5.saveJSON(ill_counter_graph_history, 'history.json');
+  }
+
   p5.draw = () => {
     ill_counter_graph_history[0].push(ill_counter);
     max_ill_counter = Math.max(max_ill_counter, ill_counter);
@@ -71,9 +75,6 @@ const sketch = p5 => {
       return;
     }
 
-    if (p5.mouseIsPressed) {
-      p5.saveJSON(ill_counter_graph_history, 'history.json');
-    }
 
     p5.background(0, 0, 0);
     p5.fill(255);
