@@ -12,7 +12,7 @@ const sketch = p5 => {
   let N = 500;
 
   let one_simulation_duration = 100;
-  let disease_duration = 15;
+  let disease_duration = 10000;
   let immunity_duration = -1; // negative for infinite immunity
   let speed = 10;
   let dT = 0.1;
