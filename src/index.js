@@ -18,9 +18,9 @@ const sketch = p5 => {
   let speed = 10;
   let dT = 0.1;
   let body_size = 5.0;
-  let soc_active = 6;
-  let soc_passive = 3;
-  let soc_active_part = 0.1;
+  let soc_active = 9;
+  let soc_passive = 1;
+  let soc_active_part = 0.5;
 
   let T = 0.0;
 
@@ -60,7 +60,10 @@ const sketch = p5 => {
     p5.text(ill_counter, 10, 20);
 
     people.forEach(person => {
-      p5.fill(person.is_ill ? [255, 0, 0] : (person.has_immunity() ? [100,100,100] : [0,255,0]));
+      let color = person.is_ill ? [255, 0, 0] : (person.has_immunity() ? [100,100,100] : [0,255,0]);
+      //p5.fill(color[0], color[1], color[3]);//person.is_ill ? [255, 0, 0] : (person.has_immunity() ? [100,100,100] : [0,255,0]));
+      p5.fill(0,0,0,10);
+      p5.stroke(color);
       p5.circle(person.x, person.y, person.soc_distance);
     })
 
@@ -72,13 +75,24 @@ const sketch = p5 => {
 
       if (person.is_ill) {
         people.forEach(person2 => {
-          if (!person2.has_immunity() &&
-            !person2.is_ill &&
-            person.distance_square(person2) < (person.soc_distance + person2.soc_distance) ** 2) {
-            person2.is_ill = true;
-            ill_counter += 1;
-            person2.last_illness_time = T;
+          if (person2 === person) {
+            return;
           }
+          if(person.distance_square(person2) < person.soc_distance * person2.soc_distance){
+            p5.stroke(255,0,0);
+            p5.fill(255,0,0, 40);
+            p5.line(person.x, person.y, person2.x, person2.y);
+            p5.circle((person.x + person2.x)/2, (person.y + person2.y)/2, person.soc_distance + person2.soc_distance)
+            if (!person2.has_immunity() && !person2.is_ill) {
+//              p5.stroke(255,0,0);
+//              p5.fill(255,0,0, 40);
+//              p5.line(person.x, person.y, person2.x, person2.y);
+//              p5.circle((person.x + person2.x)/2, (person.y + person2.y)/2, person.soc_distance + person2.soc_distance)
+              person2.is_ill = true;
+              ill_counter += 1;
+              person2.last_illness_time = T;
+            }
+          } 
         });
       }
 
