@@ -63,7 +63,7 @@ const sketch = p5 => {
   };
 
   p5.mousePressed = () => {
-    p5.saveJSON(ill_counter_graph_history, 'history.json');
+    p5.saveJSON(ill_counter_graph_history, 'history.json', true);
   }
 
   p5.draw = () => {
