@@ -76,7 +76,7 @@ const sketch = p5 => {
             );
         },
         distance_square(person) {
-          return (this.x - person.x) ** 2 + (this.y - person.y) ** 2
+          return (this.x - person.x) ** 2 + (this.y - person.y) ** 2;
         },
       });
     }
@@ -195,7 +195,7 @@ const illness_graph = p5 => {
     }
 
     if (state.graph.need_full_redraw) {
-      p5.background(255, 255, 255)
+      p5.background(255, 255, 255);
       p5.text("Max value: " + state.ill_counter.max, 10, 20);
 
       p5.fill(200);
@@ -212,7 +212,7 @@ const illness_graph = p5 => {
     }
 
     state.previous.ill_counter_max = state.ill_counter.max;
-    state.previous.history_length = state.ill_counter.graph.history.length
+    state.previous.history_length = state.ill_counter.graph.history.length;
   };
 };
 
