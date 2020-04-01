@@ -30,13 +30,10 @@ let state = {
   ill_counter: {
     value: 0,
     graph: {
-      history: []
+      history: [],
+      scale: 1
     },
     max: 0
-  },
-  graph: {
-    scale: 1,
-    need_full_redraw: false,
   },
   previous: {
     history_length: 0,
@@ -168,7 +165,7 @@ const illness_graph = p5 => {
   };
 
   function draw_point(value, x) {
-    let real_x = p5.floor(x / state.graph.scale);
+    let real_x = p5.floor(x / state.ill_counter.graph.scale);
     let real_y =
       config.graph.heigth * (1 - value / state.ill_counter.max) +
       config.graph.dot_size + config.graph.text_size;
@@ -180,21 +177,21 @@ const illness_graph = p5 => {
       return;
     }
 
-    state.graph.need_full_redraw = false;
+    let need_full_redraw = false;
 
-    let cur_graph_width = p5.floor(state.ill_counter.graph.history[0].length / state.graph.scale);
+    let cur_graph_width = p5.floor(state.ill_counter.graph.history[0].length / state.ill_counter.graph.scale);
     if (cur_graph_width >= config.graph.width) {
-      state.graph.scale *= 2;
-      state.graph.need_full_redraw = true;
+      state.ill_counter.graph.scale *= 2;
+      need_full_redraw = true;
     }
     else if (
       state.previous.ill_counter_max < state.ill_counter.max ||              // Max value changed
       state.previous.history_length < state.ill_counter.graph.history.length // New cycle is started
     ) {
-      state.graph.need_full_redraw = true;
+      need_full_redraw = true;
     }
 
-    if (state.graph.need_full_redraw) {
+    if (need_full_redraw) {
       p5.background(255, 255, 255);
       p5.text("Max value: " + state.ill_counter.max, 10, 20);
 
