@@ -57,7 +57,7 @@ const sketch = p5 => {
 
 
   p5.setup = function () {
-    p5.createCanvas(width, height).position(10, 10);
+    p5.createCanvas(width, height);
     p5.background(0, 0, 0);
     init_simulation();
   };
@@ -138,7 +138,7 @@ const illness_graph = p5 => {
   let prev_max_ill_counter = 0;
 
   p5.setup = () => {
-    p5.createCanvas(width, height + dot_size * 2 + text_size).position(10, 620);
+    p5.createCanvas(width, height + dot_size * 2 + text_size);
     p5.background(255, 255, 255);
     p5.strokeWeight(0);
   };
@@ -190,5 +190,5 @@ const illness_graph = p5 => {
   };
 };
 
-new p5(sketch);
-new p5(illness_graph);
+new p5(sketch, "field-div");
+new p5(illness_graph, "graph-div");
