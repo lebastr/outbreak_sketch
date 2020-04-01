@@ -1,47 +1,66 @@
 import p5 from "p5";
 
+let config = {
+  graph: {
+    width: 600,
+    heigth: 200,
+    dot_size: 4,
+    text_size: 30
+  },
+  simulation: {
+    height: 600,
+    width: 600,
+    duration: 100,
+    disease_duration: 10000,
+    immunity_duration: -1, // negative for infinite immunity
+    dT: 0.1,
+    people: {
+      speed: 10,
+      number: 500,
+      soc_active: 5,
+      soc_passive: 3,
+      soc_active_part: 0.1
+    }
+  }
+}
+
+
 let ill_counter = 0;
 let ill_counter_graph_history = [];
 let max_ill_counter = 0;
 let T;
 
 const sketch = p5 => {
-  let height = 600;
-  let width = 600;
-
-  let N = 500;
-
-  let one_simulation_duration = 100;
-  let disease_duration = 10000;
-  let immunity_duration = -1; // negative for infinite immunity
-  let speed = 10;
-  let dT = 0.1;
-  let soc_active = 5;
-  let soc_passive = 3;
-  let soc_active_part = 0.1;
+  let field_buffer;
+  let graph_buffer;
 
   let people;
 
   function init_simulation() {
+    let soc_active_number = config.simulation.people.soc_active_part * config.simulation.people.number;
+
     T = 0.0;
     people = [];
 
-    for (let i = 0; i < N; ++i) {
+    for (let i = 0; i < config.simulation.people.number; ++i) {
       let angle = p5.random(0, 2 * p5.PI);
       people.push({
-        x: p5.random(0, width),
-        y: p5.random(0, height),
-        vx: speed * p5.cos(angle),
-        vy: speed * p5.sin(angle),
+        x: p5.random(0, config.simulation.width),
+        y: p5.random(0, config.simulation.height),
+        vx: config.simulation.people.speed * p5.cos(angle),
+        vy: config.simulation.people.speed * p5.sin(angle),
         is_ill: false,
         last_illness_time: null,
-        soc_distance: i < soc_active_part * N ? soc_active : soc_passive,
+        soc_distance:
+          i < soc_active_number
+            ? config.simulation.people.soc_active
+            : config.simulation.people.soc_passive,
         has_immunity() {
-          return immunity_duration &&
+          return config.simulation.immunity_duration &&
             this.last_illness_time &&
-            (immunity_duration < 0 ||
-              T - this.last_illness_time > disease_duration &&
-              T - this.last_illness_time <= immunity_duration + disease_duration
+            (config.simulation.immunity_duration < 0 ||
+              T - this.last_illness_time > config.simulation.disease_duration &&
+              T - this.last_illness_time <= config.simulation.immunity_duration + config.simulation.disease_duration
             );
         },
         distance_square(person) {
@@ -57,7 +76,7 @@ const sketch = p5 => {
 
 
   p5.setup = function () {
-    p5.createCanvas(width, height);
+    p5.createCanvas(config.simulation.width, config.simulation.height);
     p5.background(0, 0, 0);
     init_simulation();
   };
@@ -70,7 +89,7 @@ const sketch = p5 => {
     ill_counter_graph_history[0].push(ill_counter);
     max_ill_counter = Math.max(max_ill_counter, ill_counter);
 
-    if (ill_counter == 0 || T > one_simulation_duration) {
+    if (ill_counter == 0 || T > config.simulation.duration) {
       init_simulation();
       return;
     }
@@ -84,14 +103,14 @@ const sketch = p5 => {
     people.forEach(person => {
       p5.fill(
         person.is_ill ? [255, 0, 0] :
-        person.has_immunity() ? [100, 100, 100] :
-        [0, 255, 0]
+          person.has_immunity() ? [100, 100, 100] :
+            [0, 255, 0]
       );
       p5.circle(person.x, person.y, person.soc_distance);
     })
 
     people.forEach(person => {
-      if (person.is_ill && T - person.last_illness_time > disease_duration) {
+      if (person.is_ill && T - person.last_illness_time > config.simulation.disease_duration) {
         person.is_ill = false;
         ill_counter -= 1;
       }
@@ -108,45 +127,45 @@ const sketch = p5 => {
         });
       }
 
-      person.x += person.vx * dT;
-      person.y += person.vy * dT;
+      person.x += person.vx * config.simulation.dT;
+      person.y += person.vy * config.simulation.dT;
 
-      person.x %= width;
+      person.x %= config.simulation.width;
       if (person.x < 0) {
-        person.x += width;
+        person.x += config.simulation.width;
       }
 
-      person.y %= height;
+      person.y %= config.simulation.height;
       if (person.y < 0) {
-        person.y += height;
+        person.y += config.simulation.height;
       }
     });
 
-    T += dT;
+    T += config.simulation.dT;
   };
 };
 
 const illness_graph = p5 => {
-  let width = 600;
-  let height = 200;
-  let dot_size = 4;
-  let text_size = 30;
-
   let scale = 1;
   let need_full_graph_redraw = false;
   let prev_history_length = 0;
   let prev_max_ill_counter = 0;
 
   p5.setup = () => {
-    p5.createCanvas(width, height + dot_size * 2 + text_size);
+    p5.createCanvas(
+      config.graph.width,
+      config.graph.heigth + config.graph.dot_size * 2 + config.graph.text_size
+    );
     p5.background(255, 255, 255);
     p5.strokeWeight(0);
   };
 
   function draw_point(value, x) {
     let real_x = p5.floor(x / scale);
-    let real_y = height * (1 - value / max_ill_counter) + dot_size + text_size;
-    p5.circle(real_x, real_y, dot_size);
+    let real_y =
+      config.graph.heigth * (1 - value / max_ill_counter) +
+      config.graph.dot_size + config.graph.text_size;
+    p5.circle(real_x, real_y, config.graph.dot_size);
   };
 
   p5.draw = () => {
@@ -157,7 +176,7 @@ const illness_graph = p5 => {
     need_full_graph_redraw = false;
 
     let cur_graph_width = p5.floor(ill_counter_graph_history[0].length / scale);
-    if (cur_graph_width >= width) {
+    if (cur_graph_width >= config.graph.width) {
       scale *= 2;
       need_full_graph_redraw = true;
     }
