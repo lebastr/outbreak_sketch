@@ -22,29 +22,41 @@ let config = {
       soc_active_part: 0.1
     }
   }
-}
+};
 
-
-let ill_counter = 0;
-let ill_counter_graph_history = [];
-let max_ill_counter = 0;
-let T;
+let state = {
+  time: 0.0,
+  people: {},
+  ill_counter: {
+    value: 0,
+    graph: {
+      history: []
+    },
+    max: 0
+  },
+  graph: {
+    scale: 1,
+    need_full_redraw: false,
+  },
+  previous: {
+    history_length: 0,
+    ill_counter_max: 0
+  }
+};
 
 const sketch = p5 => {
-  let field_buffer;
-  let graph_buffer;
-
-  let people;
+  let field_buffer; // | TODO
+  let graph_buffer; // |
 
   function init_simulation() {
     let soc_active_number = config.simulation.people.soc_active_part * config.simulation.people.number;
 
-    T = 0.0;
-    people = [];
+    state.time = 0.0;
+    state.people = [];
 
     for (let i = 0; i < config.simulation.people.number; ++i) {
       let angle = p5.random(0, 2 * p5.PI);
-      people.push({
+      state.people.push({
         x: p5.random(0, config.simulation.width),
         y: p5.random(0, config.simulation.height),
         vx: config.simulation.people.speed * p5.cos(angle),
@@ -59,8 +71,8 @@ const sketch = p5 => {
           return config.simulation.immunity_duration &&
             this.last_illness_time &&
             (config.simulation.immunity_duration < 0 ||
-              T - this.last_illness_time > config.simulation.disease_duration &&
-              T - this.last_illness_time <= config.simulation.immunity_duration + config.simulation.disease_duration
+              state.time - this.last_illness_time > config.simulation.disease_duration &&
+              state.time - this.last_illness_time <= config.simulation.immunity_duration + config.simulation.disease_duration
             );
         },
         distance_square(person) {
@@ -68,10 +80,10 @@ const sketch = p5 => {
         },
       });
     }
-    people[0].is_ill = true;
-    ill_counter = 1;
+    state.people[0].is_ill = true;
+    state.ill_counter.value = 1;
 
-    ill_counter_graph_history = [[0]].concat(ill_counter_graph_history);
+    state.ill_counter.graph.history = [[0]].concat(state.ill_counter.graph.history);
   }
 
 
@@ -82,14 +94,14 @@ const sketch = p5 => {
   };
 
   p5.mousePressed = () => {
-    p5.saveJSON(ill_counter_graph_history, 'history.json', true);
+    p5.saveJSON(state.ill_counter.graph.history, 'history.json', true);
   }
 
   p5.draw = () => {
-    ill_counter_graph_history[0].push(ill_counter);
-    max_ill_counter = Math.max(max_ill_counter, ill_counter);
+    state.ill_counter.graph.history[0].push(state.ill_counter.value);
+    state.ill_counter.max = Math.max(state.ill_counter.max, state.ill_counter.value);
 
-    if (ill_counter == 0 || T > config.simulation.duration) {
+    if (state.ill_counter.value == 0 || state.time > config.simulation.duration) {
       init_simulation();
       return;
     }
@@ -97,10 +109,10 @@ const sketch = p5 => {
 
     p5.background(0, 0, 0);
     p5.fill(255);
-    p5.text(p5.ceil(T), 10, 10);
-    p5.text(ill_counter, 10, 20);
+    p5.text(p5.ceil(state.time), 10, 10);
+    p5.text(state.ill_counter.value, 10, 20);
 
-    people.forEach(person => {
+    state.people.forEach(person => {
       p5.fill(
         person.is_ill ? [255, 0, 0] :
           person.has_immunity() ? [100, 100, 100] :
@@ -109,20 +121,20 @@ const sketch = p5 => {
       p5.circle(person.x, person.y, person.soc_distance);
     })
 
-    people.forEach(person => {
-      if (person.is_ill && T - person.last_illness_time > config.simulation.disease_duration) {
+    state.people.forEach(person => {
+      if (person.is_ill && state.time - person.last_illness_time > config.simulation.disease_duration) {
         person.is_ill = false;
-        ill_counter -= 1;
+        state.ill_counter.value -= 1;
       }
 
       if (person.is_ill) {
-        people.forEach(person2 => {
+        state.people.forEach(person2 => {
           if (!person2.has_immunity() &&
             !person2.is_ill &&
             person.distance_square(person2) < (person.soc_distance + person2.soc_distance) ** 2) {
             person2.is_ill = true;
-            ill_counter += 1;
-            person2.last_illness_time = T;
+            state.ill_counter.value += 1;
+            person2.last_illness_time = state.time;
           }
         });
       }
@@ -141,16 +153,11 @@ const sketch = p5 => {
       }
     });
 
-    T += config.simulation.dT;
+    state.time += config.simulation.dT;
   };
 };
 
 const illness_graph = p5 => {
-  let scale = 1;
-  let need_full_graph_redraw = false;
-  let prev_history_length = 0;
-  let prev_max_ill_counter = 0;
-
   p5.setup = () => {
     p5.createCanvas(
       config.graph.width,
@@ -161,51 +168,51 @@ const illness_graph = p5 => {
   };
 
   function draw_point(value, x) {
-    let real_x = p5.floor(x / scale);
+    let real_x = p5.floor(x / state.graph.scale);
     let real_y =
-      config.graph.heigth * (1 - value / max_ill_counter) +
+      config.graph.heigth * (1 - value / state.ill_counter.max) +
       config.graph.dot_size + config.graph.text_size;
     p5.circle(real_x, real_y, config.graph.dot_size);
   };
 
   p5.draw = () => {
-    if (ill_counter_graph_history.length == 0) {
+    if (state.ill_counter.graph.history.length == 0) {
       return;
     }
 
-    need_full_graph_redraw = false;
+    state.graph.need_full_redraw = false;
 
-    let cur_graph_width = p5.floor(ill_counter_graph_history[0].length / scale);
+    let cur_graph_width = p5.floor(state.ill_counter.graph.history[0].length / state.graph.scale);
     if (cur_graph_width >= config.graph.width) {
-      scale *= 2;
-      need_full_graph_redraw = true;
+      state.graph.scale *= 2;
+      state.graph.need_full_redraw = true;
     }
     else if (
-      prev_max_ill_counter < max_ill_counter ||              // Max value changed
-      prev_history_length < ill_counter_graph_history.length // New cycle is started
+      state.previous.ill_counter_max < state.ill_counter.max ||              // Max value changed
+      state.previous.history_length < state.ill_counter.graph.history.length // New cycle is started
     ) {
-      need_full_graph_redraw = true;
+      state.graph.need_full_redraw = true;
     }
 
-    if (need_full_graph_redraw) {
+    if (state.graph.need_full_redraw) {
       p5.background(255, 255, 255)
-      p5.text("Max value: " + max_ill_counter, 10, 20);
+      p5.text("Max value: " + state.ill_counter.max, 10, 20);
 
       p5.fill(200);
-      ill_counter_graph_history.slice(1)
+      state.ill_counter.graph.history.slice(1)
         .forEach(graph_data =>
           graph_data.forEach(draw_point));
 
       p5.fill(0);
-      ill_counter_graph_history[0].forEach(draw_point);
+      state.ill_counter.graph.history[0].forEach(draw_point);
     }
     else {
       p5.fill(0);
-      draw_point(ill_counter, ill_counter_graph_history[0].length);
+      draw_point(state.ill_counter.value, state.ill_counter.graph.history[0].length);
     }
 
-    prev_max_ill_counter = max_ill_counter;
-    prev_history_length = ill_counter_graph_history.length
+    state.previous.ill_counter_max = state.ill_counter.max;
+    state.previous.history_length = state.ill_counter.graph.history.length
   };
 };
 
